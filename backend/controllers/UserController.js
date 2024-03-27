@@ -84,4 +84,49 @@ module.exports = class UserController {
             res.status(500).json({ message: err })
         }
     }
+
+    static async login(req, res) {
+        const { email, password } = req.body;
+
+        function checkField(field, fieldName) {
+            if (!field) {
+                res.status(422).json({
+                    message: `O campo ${fieldName} é obrigatório`
+                });
+                return false;
+            }
+            return true;
+        }
+
+        if (!checkField(email, 'email') ||
+            !checkField(password, 'senha')) {
+            return;
+        }
+
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            res.status(422).json({
+                message: 'Usuário não encontrado!'
+            });
+            return;
+        }
+
+        const checkPassword = await bcrypt.compare(password, user.password);
+
+        if (!checkPassword) {
+            res.status(422).json({
+                message: 'Senha inválida!'
+            });
+            return;
+        }
+
+        try {
+            createUserToken(user, req, res)
+
+        } catch (err) {
+            res.status(500).json({ message: err })
+        }
+
+    }
 }
