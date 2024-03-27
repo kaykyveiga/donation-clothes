@@ -1,5 +1,6 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const createUserToken = require('../helpers/create-user-token')
 
 module.exports = class UserController {
     static async register(req, res) {
@@ -75,7 +76,9 @@ module.exports = class UserController {
         })
         try {
 
-            await user.save()
+            const newUser = await user.save();
+
+            createUserToken(newUser, req, res)
 
         } catch (err) {
             res.status(500).json({ message: err })
