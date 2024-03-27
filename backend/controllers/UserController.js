@@ -1,7 +1,11 @@
 const User = require('../models/User');
+const bcrypt = require('bcrypt')
 
 module.exports = class UserController {
     static async register(req, res) {
+
+        //Validations
+
         const { name, email, password, confirmPassword, phone, adress } = req.body;
 
         function checkField(field, fieldName) {
@@ -55,6 +59,26 @@ module.exports = class UserController {
                 message: 'O número de telefone deve estar no formato (dd) xxxxx-xxxx'
             });
             return;
+        }
+
+        //Create User
+
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const user = new User({
+            name,
+            email,
+            phone,
+            adress,
+            password: passwordHash
+        })
+        try {
+
+            await user.save()
+
+        } catch (err) {
+            res.status(500).json({ message: err })
         }
     }
 }
