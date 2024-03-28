@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 //helpers
 const createUserToken = require('../helpers/create-user-token')
 const getToken = require('../helpers/get-token');
+const getUserByToken = require('../helpers/get-user-by-token');
 
 module.exports = class UserController {
     static async register(req, res) {
@@ -160,5 +161,88 @@ module.exports = class UserController {
             return;
         }
         res.status(200).json({ user })
+    }
+
+    static async editUser(req, res) {
+        const token = getToken(req);
+        const user = await getUserByToken(token);
+
+        const { name, email, password, confirmPassword, phone, adress } = req.body;
+
+        const userExists = await User.findOne({ email: email });
+
+        if (user.email !== email && userExists) {
+            res.status(422).json({
+                message: 'Por favor, utilize outro email!'
+            });
+            return;
+        }
+
+        function checkField(field, fieldName) {
+            if (!field) {
+                res.status(422).json({
+                    message: `O campo ${fieldName} é obrigatório`
+                });
+                return false;
+            }
+            return true;
+        }
+
+
+        if (!checkField(name, 'nome')
+            ||
+            !checkField(email, 'email') ||
+            !checkField(password, 'senha') ||
+            !checkField(phone, 'telefone') ||
+            !checkField(adress, 'endereço')) {
+            return;
+        }
+
+        user.name = name
+        user.email = email
+        user.password = password
+        user.phone = phone
+        user.adress = adress
+
+
+        if (password !== confirmPassword) {
+            res.status(422).json({
+                message: 'Confirmação de senha incorreta'
+            });
+            return;
+        }
+
+        if (password.length < 8) {
+            res.status(422).json({
+                message: 'A senha deve ter no mínimo 8 caracteres'
+            });
+            return;
+        }
+
+        function isValidPhoneNumber(phoneNumber) {
+            const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
+            return phoneRegex.test(phoneNumber);
+        }
+
+        if (!isValidPhoneNumber(phone)) {
+            res.status(422).json({
+                message: 'O número de telefone deve estar no formato (dd) xxxxx-xxxx'
+            });
+            return;
+        }
+
+        try {
+
+            const updated = await User.findOneAndUpdate(
+              { _id: user._id },
+              { $set: user },
+              { new: true },
+            )
+            res.json({
+              message: 'Usuário atualizado com su cesso!', 
+            })
+          } catch (error) {
+            res.status(500).json({ message: error })
+          }
     }
 }
