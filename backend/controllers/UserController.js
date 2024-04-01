@@ -136,17 +136,17 @@ module.exports = class UserController {
     }
 
     static async checkUser(req, res) {
-        let cuurrentUser = false;
+        let currentUser = false;
 
         if (req.headers.authorization) {
             const token = getToken(req);
             const decoded = jwt.verify(token, "registrationandlogintokensecret");
 
-            cuurrentUser = await User.findById(decoded.id)
-            cuurrentUser.password = undefined
+            currentUser = await User.findById(decoded.id)
+            currentUser.password = undefined
         }
 
-        res.status(200).send(cuurrentUser)
+        res.status(200).send(currentUser)
     }
 
     static async getUserByID(req, res) {
@@ -168,6 +168,12 @@ module.exports = class UserController {
         const user = await getUserByToken(token);
 
         const { name, email, password, confirmPassword, phone, adress } = req.body;
+
+        let image = '';
+
+        if (req.file) {
+            user.image = req.file.filename;
+        }
 
         const userExists = await User.findOne({ email: email });
 
@@ -234,15 +240,15 @@ module.exports = class UserController {
         try {
 
             const updated = await User.findOneAndUpdate(
-              { _id: user._id },
-              { $set: user },
-              { new: true },
+                { _id: user._id },
+                { $set: user },
+                { new: true },
             )
             res.json({
-              message: 'Usuário atualizado com su cesso!', 
+                message: 'Usuário atualizado com sucesso!',
             })
-          } catch (error) {
+        } catch (error) {
             res.status(500).json({ message: error })
-          }
+        }
     }
 }
