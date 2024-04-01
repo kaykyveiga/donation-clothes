@@ -7,6 +7,8 @@ module.exports = class DonationController {
     static async create(req, res) {
         const { name, size, color, brand } = req.body;
 
+        const images = req.files;
+
         const available = true;
 
         function checkField(field, fieldName) {
@@ -26,6 +28,12 @@ module.exports = class DonationController {
             return;
         }
 
+        if (images.lenght === 0) {
+            res.status(422).json({
+                message: `O campo imagem é obrigatório`
+            });
+        }
+
         const token = getToken(req);
         const user = await getUserByToken(token)
 
@@ -43,6 +51,10 @@ module.exports = class DonationController {
                 phone: user.phone,
                 adress: user.adress
             }
+        })
+
+        images.map((image) => {
+            donation.images.push(image.filename)
         })
 
         try {

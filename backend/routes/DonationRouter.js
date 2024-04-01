@@ -4,7 +4,8 @@ const DonationController = require('../controllers/DonationController');
 
 //helpers
 const verifyToken = require('../helpers/veryfy-token');
+const { imageUpload } = require('../helpers/image-upload');
 
-router.post('/create',verifyToken, DonationController.create);
+router.post('/create', verifyToken, imageUpload.array("images"), DonationController.create);
 
 module.exports = router
