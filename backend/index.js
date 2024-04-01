@@ -10,11 +10,13 @@ app.use(express.json());
 app.use(express.static('public'));
 
 //Solve cors
-app.use(cors({credentials : true, origin: 'http://localhost:3000'}))
+app.use(cors({ credentials: true, origin: 'http://localhost:3000' }))
 
 //Routes
 const UserRouter = require('./routes/UserRouter');
-app.use('/users' , UserRouter);
+app.use('/users', UserRouter);
 
+const DonationRouter = require('./routes/DonationRouter');
+app.use('/donations', DonationRouter);
 
-app.listen(5000)
+app.listen(5000);

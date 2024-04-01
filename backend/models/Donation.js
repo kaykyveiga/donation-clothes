@@ -20,7 +20,7 @@ const Donation = mongoose.model(
             required: true
         },
         brand: {
-            type: Boolean
+            type: String
         },
         available: {
             type: Boolean
