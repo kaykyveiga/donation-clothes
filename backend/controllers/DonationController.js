@@ -24,7 +24,7 @@ module.exports = class DonationController {
 
         if (!checkField(name, 'nome') ||
             !checkField(size, 'tamanho') ||
-            !checkField(color, 'cor')) {
+            !checkField(color, 'cor')){
             return;
         }
 
@@ -66,5 +66,12 @@ module.exports = class DonationController {
         } catch (err) {
             res.status(500).json({ message: err })
         }
+    }
+    static async getAll(req, res) {
+        const donations = await Donation.find().sort('-createdAt')
+
+        res.status(200).json({
+            donations: donations,
+        })
     }
 }
