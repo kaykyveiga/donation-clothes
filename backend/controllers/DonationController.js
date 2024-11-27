@@ -2,6 +2,7 @@ const Donation = require('../models/Donation');
 
 const getToken = require('../helpers/get-token');
 const getUserByToken = require('../helpers/get-user-by-token');
+const ObjectId = require('mongoose').Types.ObjectId
 
 module.exports = class DonationController {
     static async create(req, res) {
@@ -109,14 +110,28 @@ module.exports = class DonationController {
         const donations = await Donation.find({ 'adopted._id': user._id }).sort('-createdAt');
 
         console.log("Consulta:", { 'adopted._id': user._id });
-        
+
         console.log("Resultados:", donations);
-        
+
 
         return res.status(200).json({
             donations,
         });
+    }
 
+    static async getDonationById(req, res) {
+      
+            const id = req.params.id; 
+           
+            if (!ObjectId.isValid(id)) {
+                return res.status(422).json({ message: "Id inválido!" });
+            }
+    
+            const donation = await Donation.findOne({ _id: id });
+            if (!donation) {
+                return res.status(404).json({ message: "A doação não foi encontrada!" });
+            }
 
+            return res.status(200).json({ donation });
     }
 }

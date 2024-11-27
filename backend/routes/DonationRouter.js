@@ -10,5 +10,6 @@ router.post('/create', verifyToken, imageUpload.array("images"), DonationControl
 router.get('/', DonationController.getAll );
 router.get('/mydonations',verifyToken, DonationController.getMyDonation)
 router.get('/clothesInterestMe', verifyToken, DonationController.clothesInterestMe )
+router.get('/:id' , DonationController.getDonationById)
 
 module.exports = router
