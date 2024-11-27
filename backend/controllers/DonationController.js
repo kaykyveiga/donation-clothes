@@ -101,4 +101,22 @@ module.exports = class DonationController {
             });
         }
     }
+    static async clothesInterestMe(req, res) {
+
+        const token = getToken(req);
+        const user = await getUserByToken(token);
+
+        const donations = await Donation.find({ 'adopted._id': user._id }).sort('-createdAt');
+
+        console.log("Consulta:", { 'adopted._id': user._id });
+        
+        console.log("Resultados:", donations);
+        
+
+        return res.status(200).json({
+            donations,
+        });
+
+
+    }
 }

@@ -9,5 +9,6 @@ const { imageUpload } = require('../helpers/image-upload');
 router.post('/create', verifyToken, imageUpload.array("images"), DonationController.create);
 router.get('/', DonationController.getAll );
 router.get('/mydonations',verifyToken, DonationController.getMyDonation)
+router.get('/clothesInterestMe', verifyToken, DonationController.clothesInterestMe )
 
 module.exports = router
