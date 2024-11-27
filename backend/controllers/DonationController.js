@@ -134,4 +134,29 @@ module.exports = class DonationController {
 
             return res.status(200).json({ donation });
     }
+
+    static async deleteDonationById(req,res) {
+        const id = req.params.id; 
+        const token  = getToken(req)
+        const user = await getUserByToken(token)
+           
+        if (!ObjectId.isValid(id)) {
+            return res.status(422).json({ message: "Id inválido!" });
+        }
+
+        const donation = await Donation.findOne({ _id: id });
+        if (!donation) {
+            return res.status(404).json({ message: "A doação não foi encontrada!" });
+        }
+
+        if(donation.user.id.toString() !== user._id.toString()){
+            res.status(422).json({
+                message: 'Você não possui permissão para deletar essa doação.'
+            })
+        }
+
+        await Donation.findByIdAndDelete(id)
+       res.status(200)
+       
+    }
 }
