@@ -13,5 +13,6 @@ router.get('/clothesInterestMe', verifyToken, DonationController.clothesInterest
 router.get('/:id' , DonationController.getDonationById)
 router.delete(('/delete/:id'), verifyToken, DonationController.deleteDonationById)
 router.patch('/patch/:id', verifyToken, imageUpload.array('images'), DonationController.patchDonationById )
+router.patch('/shedule/:id', verifyToken, DonationController.sheduleDonation)
 
 module.exports = router

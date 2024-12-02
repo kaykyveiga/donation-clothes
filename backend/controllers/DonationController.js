@@ -107,9 +107,9 @@ module.exports = class DonationController {
         const token = getToken(req);
         const user = await getUserByToken(token);
 
-        const donations = await Donation.find({ 'adopted._id': user._id }).sort('-createdAt');
+        const donations = await Donation.find({ 'adopter._id': user._id }).sort('-createdAt');
 
-        console.log("Consulta:", { 'adopted._id': user._id });
+        console.log("Consulta:", { 'adopter._id': user._id });
 
         console.log("Resultados:", donations);
 
@@ -205,5 +205,45 @@ module.exports = class DonationController {
             donation,
         });
     }
+    static async sheduleDonation(req, res) {
+        const id = req.params.id;
+        const token = getToken(req);
+        const user = await getUserByToken(token);
+    
+        if (!ObjectId.isValid(id)) {
+            return res.status(422).json({ message: "Id inválido!" });
+        }
+    
+        const donation = await Donation.findOne({ _id: id });
+        if (!donation) {
+            return res.status(404).json({ message: "A doação não foi encontrada!" });
+        }
+    
+        if (donation.user.id.equals(user._id)) {
+            return res.status(422).json({
+                message: `${user.name}, você não pode marcar uma visita nas suas próprias doações.`
+            });
+        }
+    
+        if (donation.adopter && donation.adopter._id.equals(user._id)) {
+            return res.status(422).json({
+                message: `${user.name}, você já agendou uma visita.`
+            });
+        }
+    
+        donation.adopter = {
+            _id: user._id,
+            name: user.name,
+            image: user.images
+        };
+    
+        await Donation.findByIdAndUpdate(id, donation);
+    
+        res.status(200).json({
+            message: `${user.name}, sua visita foi agendada.`
+        });
+    }
+    
+
         
 }
