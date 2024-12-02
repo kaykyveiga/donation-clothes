@@ -163,43 +163,43 @@ module.exports = class DonationController {
     static async patchDonationById(req, res) {
         const id = req.params.id;
         const { name, size, color } = req.body;
-    
+
         // Verifique se os arquivos foram recebidos
         const files = req.files;
         console.log('Arquivos recebidos:', files);
-    
+
         if (!ObjectId.isValid(id)) {
             return res.status(422).json({ message: "Id inválido!" });
         }
-    
+
         const donation = await Donation.findById(id);
         if (!donation) {
             return res.status(404).json({ message: "A doação não foi encontrada!" });
         }
-    
+
         const token = getToken(req);
         const user = await getUserByToken(token);
-    
+
         if (donation.user.id.toString() !== user._id.toString()) {
             return res.status(403).json({ message: "Você não tem permissão para alterar esta doação." });
         }
-    
+
         if (!files || files.length === 0) {
             return res.status(422).json({ message: "É necessário enviar pelo menos uma imagem." });
         }
-    
+
         // Atualizar os campos
         if (name) donation.name = name;
         if (size) donation.size = size;
         if (color) donation.color = color;
-    
+
         // Adicionar novas imagens
         files.forEach((file) => {
             donation.images.push(file.filename);
         });
-    
+
         await donation.save();
-    
+
         return res.status(200).json({
             message: "Doação atualizada com sucesso!",
             donation,
@@ -209,41 +209,45 @@ module.exports = class DonationController {
         const id = req.params.id;
         const token = getToken(req);
         const user = await getUserByToken(token);
-    
+
         if (!ObjectId.isValid(id)) {
             return res.status(422).json({ message: "Id inválido!" });
         }
-    
+
         const donation = await Donation.findOne({ _id: id });
         if (!donation) {
             return res.status(404).json({ message: "A doação não foi encontrada!" });
         }
-    
+
         if (donation.user.id.equals(user._id)) {
             return res.status(422).json({
                 message: `${user.name}, você não pode marcar uma visita nas suas próprias doações.`
             });
         }
-    
+
         if (donation.adopter && donation.adopter._id.equals(user._id)) {
             return res.status(422).json({
                 message: `${user.name}, você já agendou uma visita.`
             });
         }
-    
+
+        if (donation.adopter._id !== user._id) {
+            return res.status(422).json({
+                message: `Doação indisponível no momento, o ${donation.adopter.name} já agendou uma visita.`
+            })
+        }
+
         donation.adopter = {
             _id: user._id,
             name: user.name,
             image: user.images
         };
-    
+
         await Donation.findByIdAndUpdate(id, donation);
-    
+
         res.status(200).json({
             message: `${user.name}, sua visita foi agendada.`
         });
     }
-    
 
-        
 }
