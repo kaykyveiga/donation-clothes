@@ -120,26 +120,9 @@ module.exports = class DonationController {
     }
 
     static async getDonationById(req, res) {
-      
-            const id = req.params.id; 
-           
-            if (!ObjectId.isValid(id)) {
-                return res.status(422).json({ message: "Id inválido!" });
-            }
-    
-            const donation = await Donation.findOne({ _id: id });
-            if (!donation) {
-                return res.status(404).json({ message: "A doação não foi encontrada!" });
-            }
 
-            return res.status(200).json({ donation });
-    }
+        const id = req.params.id;
 
-    static async deleteDonationById(req,res) {
-        const id = req.params.id; 
-        const token  = getToken(req)
-        const user = await getUserByToken(token)
-           
         if (!ObjectId.isValid(id)) {
             return res.status(422).json({ message: "Id inválido!" });
         }
@@ -149,14 +132,78 @@ module.exports = class DonationController {
             return res.status(404).json({ message: "A doação não foi encontrada!" });
         }
 
-        if(donation.user.id.toString() !== user._id.toString()){
+        return res.status(200).json({ donation });
+    }
+
+    static async deleteDonationById(req, res) {
+        const id = req.params.id;
+        const token = getToken(req)
+        const user = await getUserByToken(token)
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(422).json({ message: "Id inválido!" });
+        }
+
+        const donation = await Donation.findOne({ _id: id });
+        if (!donation) {
+            return res.status(404).json({ message: "A doação não foi encontrada!" });
+        }
+
+        if (donation.user.id.toString() !== user._id.toString()) {
             res.status(422).json({
                 message: 'Você não possui permissão para deletar essa doação.'
             })
         }
 
         await Donation.findByIdAndDelete(id)
-       res.status(200)
-       
+        res.status(200)
+
     }
+
+    static async patchDonationById(req, res) {
+        const id = req.params.id;
+        const { name, size, color } = req.body;
+    
+        // Verifique se os arquivos foram recebidos
+        const files = req.files;
+        console.log('Arquivos recebidos:', files);
+    
+        if (!ObjectId.isValid(id)) {
+            return res.status(422).json({ message: "Id inválido!" });
+        }
+    
+        const donation = await Donation.findById(id);
+        if (!donation) {
+            return res.status(404).json({ message: "A doação não foi encontrada!" });
+        }
+    
+        const token = getToken(req);
+        const user = await getUserByToken(token);
+    
+        if (donation.user.id.toString() !== user._id.toString()) {
+            return res.status(403).json({ message: "Você não tem permissão para alterar esta doação." });
+        }
+    
+        if (!files || files.length === 0) {
+            return res.status(422).json({ message: "É necessário enviar pelo menos uma imagem." });
+        }
+    
+        // Atualizar os campos
+        if (name) donation.name = name;
+        if (size) donation.size = size;
+        if (color) donation.color = color;
+    
+        // Adicionar novas imagens
+        files.forEach((file) => {
+            donation.images.push(file.filename);
+        });
+    
+        await donation.save();
+    
+        return res.status(200).json({
+            message: "Doação atualizada com sucesso!",
+            donation,
+        });
+    }
+        
 }
